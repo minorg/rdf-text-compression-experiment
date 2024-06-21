@@ -2,6 +2,8 @@
 
 Experiment in compressing RDF text formats such as N-Triples using off-the-shelf compressors such as gzip
 
+See the [accompanying blog post](https://minorgordon.net/blog/2024/06/21/rdf-text-compression-experiment.html) for a summary of the experiment and key findings.
+
 ## Prerequisites
 
 ### Required
