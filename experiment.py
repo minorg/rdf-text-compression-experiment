@@ -3,15 +3,10 @@ from os import stat
 from pathlib import Path
 from shutil import which, rmtree
 from subprocess import check_call
+from time import monotonic
 from typing import Callable
 
 Compressor = Callable[[Path, Path], Path]
-
-
-def combine_compressors(left_compressor: Compressor, right_compressor: Compressor) -> Compressor:
-    def combined_compressor(input_file_path: Path, output_directory_path: Path) -> None:
-        return right_compressor(left_compressor(input_file_path, output_directory_path), output_directory_path)
-    return combined_compressor
 
 
 def compressors_by_name() -> dict[str, Compressor]:
@@ -79,6 +74,7 @@ def main() -> None:
                 ttl_file_path = (output_directory_path / f"{nt_file_path.stem}.ttl")
                 args = ["rapper", "-i", "ntriples", "-o", "turtle", str(nt_file_path)]
                 for namespace_prefix, namespace_uri in {
+                    "agrontology": "http://aims.fao.org/aos/agrontology#",
                     "dcat": "http://www.w3.org/ns/dcat#",
                     "dct": "http://purl.org/dc/terms/",
                     "owl": "http://www.w3.org/2002/07/owl#",
@@ -109,6 +105,7 @@ def main() -> None:
                 csv_fieldnames.append(f"{rdf_format} {compressor_name} human")
                 csv_fieldnames.append(f"{rdf_format} {compressor_name} compression ratio")
                 csv_fieldnames.append(f"{rdf_format} {compressor_name} space savings")
+                csv_fieldnames.append(f"{rdf_format} {compressor_name} time (s)")
         csv_writer = csv.DictWriter(results_csv_file, fieldnames=csv_fieldnames)
         csv_writer.writeheader()
         for input_name in inputs.keys():
@@ -119,15 +116,19 @@ def main() -> None:
                 csv_row[f"{rdf_format} human"] = sizeof_fmt(uncompressed_size)
                 for compressor_name, compressor in compressors_by_name_.items():
                     print("compressing", input_file_path, "with", compressor_name)
+                    start_time_s = monotonic()
                     output_file_path = compressor(input_file_path, output_directory_path)
+                    elapsed_time_s = monotonic() - start_time_s
                     compressed_size = stat(output_file_path).st_size
                     print("compressed", input_file_path, "with", compressor_name, "to", output_file_path, ":", compressed_size , "bytes")
                     csv_row[f"{rdf_format} {compressor_name} bytes"] = str(compressed_size)
                     csv_row[f"{rdf_format} {compressor_name} human"] = sizeof_fmt(compressed_size)
                     csv_row[f"{rdf_format} {compressor_name} compression ratio"] = f"{uncompressed_size / compressed_size:.2f}"
                     csv_row[f"{rdf_format} {compressor_name} space savings"] = f"{1 - (compressed_size / uncompressed_size):.2f}"
+                    csv_row[f"{rdf_format} {compressor_name} time (s)"] = f"{elapsed_time_s:2f}"
 
             csv_writer.writerow(csv_row)
+            results_csv_file.flush()
 
 
 if __name__ == "__main__":
