@@ -1,3 +1,3 @@
-Input,N-Triples,gzip,Turtle gzip,Turtle
-hasset,8285483,1331863,797243,3772480
-unesco-thesaurus,14572378,1055971,755885,4524321
+Input,N-Triples,brotli,bzip2,gzip,Turtle brotli,Turtle bzip2,Turtle gzip,Turtle
+hasset,8285483,423377,1041220,1331863,333765,513085,797243,3772480
+unesco-thesaurus,14572378,682254,648537,1055971,493356,450587,755885,4524321

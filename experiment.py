@@ -37,6 +37,24 @@ def compressors_by_name() -> dict[str, Compressor]:
             check_call(args, stdout=output_file)
         return output_file_path
 
+    if which("brotli"):
+        def brotli_compressor(input_file_path: Path, output_directory_path: Path) -> Path:
+            output_file_path = (output_directory_path / f"{input_file_path.stem}.br")
+            with output_file_path.open("w+b") as output_file:
+                check_call(["brotli", "--keep", "-q", "11", "--stdout", str(input_file_path)], stdout=output_file)
+            return output_file_path
+
+        compressors_by_name_["brotli"] = brotli_compressor
+
+    if which("bzip2"):
+        def bzip2_compressor(input_file_path: Path, output_directory_path: Path) -> Path:
+            output_file_path = (output_directory_path / f"{input_file_path.stem}.bz2")
+            with output_file_path.open("w+b") as output_file:
+                check_call(["bzip2", "-9", "--keep", "--stdout", str(input_file_path)], stdout=output_file)
+            return output_file_path
+
+        compressors_by_name_["bzip2"] = bzip2_compressor
+
     if which("gzip"):
         def gzip_compressor(input_file_path: Path, output_directory_path: Path) -> Path:
             output_file_path = (output_directory_path / f"{input_file_path.stem}.gz")
